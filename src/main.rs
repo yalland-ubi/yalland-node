@@ -15,9 +15,9 @@ fn main() -> Result<(), cli::error::Error> {
 		name: "Substrate Node",
 		commit: env!("VERGEN_SHA_SHORT"),
 		version: env!("CARGO_PKG_VERSION"),
-		executable_name: "node-template",
-		author: "Anonymous",
-		description: "Template Node",
+		executable_name: "yalland-node",
+		author: "Yalland",
+		description: "Yalland Node",
 		support_url: "support.anonymous.an",
 	};
 
