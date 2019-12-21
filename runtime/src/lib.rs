@@ -9,7 +9,6 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use sp_std::prelude::*;
-use sp_core::OpaqueMetadata;
 use sp_runtime::{
 	ApplyExtrinsicResult, transaction_validity::TransactionValidity, generic, create_runtime_str,
 	impl_opaque_keys, MultiSignature
@@ -19,6 +18,7 @@ use sp_runtime::traits::{
 };
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::{OpaqueMetadata, U256, H160};
 use grandpa::AuthorityList as GrandpaAuthorityList;
 use grandpa::fg_primitives;
 use sp_version::RuntimeVersion;
@@ -31,6 +31,7 @@ pub use sp_runtime::BuildStorage;
 pub use timestamp::Call as TimestampCall;
 pub use balances::Call as BalancesCall;
 pub use sp_runtime::{Permill, Perbill};
+pub use evm::{ConvertAccountId, FeeCalculator};
 pub use frame_support::{
 	StorageValue, construct_runtime, parameter_types,
 	traits::Randomness,
@@ -236,6 +237,37 @@ impl template::Trait for Runtime {
 	type Event = Event;
 }
 
+pub struct FixedGasPrice;
+impl FeeCalculator for FixedGasPrice {
+	fn gas_price() -> U256 {
+		// The gas price is always 1 GWei XTH per 1 unit of gas.
+		// Todo: allow users to dynamically adjust the gas price.
+		// https://github.com/dothereum/dothereum/issues/52
+		1_000_000_000.into()
+	}
+}
+
+// Use truncated account IDs to convert for EVM accounts.
+pub struct TruncatedAccountId;
+impl<AccountId> ConvertAccountId<AccountId> for TruncatedAccountId {
+	fn convert_account_id(_account_id: &AccountId) -> H160 {
+		// Todo: this needs a proper implementation.
+		// Either truncate the first several bits and return the resulting H160;
+		// Or hashing directly is easier to figure this out.
+		// https://github.com/dothereum/dothereum/issues/53
+		unimplemented!();
+	}
+}
+
+// Implement the EVM Trait for the Dothereum Runtime.
+impl evm::Trait for Runtime {
+	type FeeCalculator = FixedGasPrice;
+	type ConvertAccountId = TruncatedAccountId;
+	type Currency = Balances;
+	type Event = Event;
+	type Precompiles = ();
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -253,6 +285,8 @@ construct_runtime!(
 		// Used for the module template in `./template.rs`
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
+		EVM: evm::{Module, Call, Storage, Config, Event},
+
 	}
 );
 

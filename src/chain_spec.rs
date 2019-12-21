@@ -1,7 +1,8 @@
 use sp_core::{Pair, Public, sr25519};
 use yalland_node_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
-	SudoConfig, IndicesConfig, SystemConfig, WASM_BINARY, Signature
+	SudoConfig, IndicesConfig, SystemConfig, WASM_BINARY, Signature,
+	EVMConfig
 };
 use sp_consensus_aura::sr25519::{AuthorityId as AuraId};
 use grandpa_primitives::{AuthorityId as GrandpaId};
@@ -23,6 +24,7 @@ pub enum Alternative {
 	Development,
 	/// Whatever the current runtime is, with simple Alice/Bob auths.
 	LocalTestnet,
+	PalmnickenTestnet
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -102,12 +104,42 @@ impl Alternative {
 				None,
 				None
 			),
+			Alternative::PalmnickenTestnet => ChainSpec::from_genesis(
+				"Palmnicken Testnet",
+				"palmnicken_testnet",
+				|| testnet_genesis(vec![
+					get_authority_keys_from_seed("Alice"),
+					get_authority_keys_from_seed("Bob"),
+				],
+								   get_account_id_from_seed::<sr25519::Public>("Alice"),
+								   vec![
+									   get_account_id_from_seed::<sr25519::Public>("Alice"),
+									   get_account_id_from_seed::<sr25519::Public>("Bob"),
+									   get_account_id_from_seed::<sr25519::Public>("Charlie"),
+									   get_account_id_from_seed::<sr25519::Public>("Dave"),
+									   get_account_id_from_seed::<sr25519::Public>("Eve"),
+									   get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+									   get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+									   get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+									   get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+									   get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+									   get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+									   get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+								   ],
+								   true),
+				vec![],
+				None,
+				None,
+				None,
+				None
+			),
 		})
 	}
 
 	pub(crate) fn from(s: &str) -> Option<Self> {
 		match s {
 			"dev" => Some(Alternative::Development),
+			"palm" => Some(Alternative::PalmnickenTestnet),
 			"" | "local" => Some(Alternative::LocalTestnet),
 			_ => None,
 		}
@@ -139,5 +171,6 @@ fn testnet_genesis(initial_authorities: Vec<(AuraId, GrandpaId)>,
 		grandpa: Some(GrandpaConfig {
 			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
 		}),
+		evm: Some(EVMConfig::default()),
 	}
 }

@@ -10,6 +10,7 @@ std = [
     'aura/std',
     'balances/std',
     'codec/std',
+    "evm/std",
     'frame-executive/std',
     'frame-support/std',
     'grandpa/std',
@@ -34,11 +35,17 @@ std = [
     'timestamp/std',
     'transaction-payment/std',
 ]
+
 [build-dependencies.wasm-builder-runner]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'substrate-wasm-builder-runner'
 rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
 version = '1.0.4'
+
+
+[dependencies]
+evm = { package = "pallet-evm", git = "https://github.com/paritytech/substrate.git", rev = "40a16efefc070faf5a25442bc3ae1d0ea2478eee", default-features = false }
+
 [dependencies.aura]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
