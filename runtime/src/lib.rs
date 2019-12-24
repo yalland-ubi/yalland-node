@@ -9,18 +9,21 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use sp_std::prelude::*;
+use sp_core::{OpaqueMetadata, U256, H160};
 use sp_runtime::{
 	ApplyExtrinsicResult, transaction_validity::TransactionValidity, generic, create_runtime_str,
-	impl_opaque_keys, MultiSignature
+	impl_opaque_keys, MultiSignature, curve::PiecewiseLinear,
 };
 use sp_runtime::traits::{
-	NumberFor, BlakeTwo256, Block as BlockT, StaticLookup, Verify, ConvertInto, IdentifyAccount
+	NumberFor, BlakeTwo256, Block as BlockT, StaticLookup, Verify, ConvertInto, IdentifyAccount, OpaqueKeys
 };
-use sp_api::impl_runtime_apis;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{OpaqueMetadata, U256, H160};
+use im_online::sr25519::{AuthorityId as ImOnlineId};
+use impls::{CurrencyToVoteHandler};
 use grandpa::AuthorityList as GrandpaAuthorityList;
+use sp_api::impl_runtime_apis;
+use system::offchain::TransactionSubmitter;
 use grandpa::fg_primitives;
+use sp_staking::SessionIndex;
 use sp_version::RuntimeVersion;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -37,6 +40,8 @@ pub use frame_support::{
 	traits::Randomness,
 	weights::Weight,
 };
+
+pub use staking::StakerStatus;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -67,6 +72,11 @@ pub type DigestItem = generic::DigestItem<Hash>;
 /// Used for the module template in `./template.rs`
 mod template;
 
+pub mod constants;
+pub mod impls;
+
+use constants::{time::*};
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -82,12 +92,14 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
+}
 
-	impl_opaque_keys! {
-		pub struct SessionKeys {
-			pub aura: Aura,
-			pub grandpa: Grandpa,
-		}
+impl_opaque_keys! {
+	pub struct SessionKeys {
+		pub babe: Babe,
+		pub im_online: ImOnline,
+		pub grandpa: Grandpa,
+		pub authority_discovery: AuthorityDiscovery,
 	}
 }
 
@@ -158,10 +170,18 @@ impl system::Trait for Runtime {
 	type AvailableBlockRatio = AvailableBlockRatio;
 	/// Version of the runtime.
 	type Version = Version;
+	type ModuleToIndex = ();
 }
 
-impl aura::Trait for Runtime {
-	type AuthorityId = AuraId;
+parameter_types! {
+	pub const EpochDuration: u64 = EPOCH_DURATION_IN_BLOCKS as u64;
+	pub const ExpectedBlockTime: u64 = MILLISECS_PER_BLOCK;
+}
+
+impl babe::Trait for Runtime {
+	type EpochDuration = EpochDuration;
+	type ExpectedBlockTime = ExpectedBlockTime;
+	type EpochChangeTrigger = babe::SameAuthoritiesForever;
 }
 
 impl grandpa::Trait for Runtime {
@@ -187,7 +207,7 @@ parameter_types! {
 impl timestamp::Trait for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
-	type OnTimestampSet = Aura;
+	type OnTimestampSet = Babe;
 	type MinimumPeriod = MinimumPeriod;
 }
 
@@ -239,7 +259,7 @@ impl template::Trait for Runtime {
 
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
-	fn gas_price() -> U256 {
+	fn min_gas_price() -> U256 {
 		// The gas price is always 1 GWei XTH per 1 unit of gas.
 		// Todo: allow users to dynamically adjust the gas price.
 		// https://github.com/dothereum/dothereum/issues/52
@@ -268,6 +288,108 @@ impl evm::Trait for Runtime {
 	type Precompiles = ();
 }
 
+parameter_types! {
+	pub const SessionDuration: BlockNumber = EPOCH_DURATION_IN_SLOTS as _;
+}
+
+impl im_online::Trait for Runtime {
+	type AuthorityId = ImOnlineId;
+	type Event = Event;
+	type Call = Call;
+	type SubmitTransaction = TransactionSubmitter<ImOnlineId, Runtime, UncheckedExtrinsic>;
+	type SessionDuration = SessionDuration;
+	type ReportUnresponsiveness = Offences;
+}
+
+pallet_staking_reward_curve::build! {
+	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
+		min_inflation: 0_025_000,
+		max_inflation: 0_100_000,
+		ideal_stake: 0_500_000,
+		falloff: 0_050_000,
+		max_piece_count: 40,
+		test_precision: 0_005_000,
+	);
+}
+
+parameter_types! {
+	// Six sessions in an era (24 hours).
+	pub const SessionsPerEra: SessionIndex = 6;
+	// 28 eras for unbonding (28 days).
+	// KUSAMA: This value is 1/4 of what we expect for the mainnet, however session length is also
+	// a quarter, so the figure remains the same.
+	pub const BondingDuration: staking::EraIndex = 28;
+	pub const SlashDeferDuration: staking::EraIndex = 28;
+	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
+}
+
+impl staking::Trait for Runtime {
+	type Currency = Balances;
+	type Time = Timestamp;
+	type CurrencyToVote = CurrencyToVoteHandler;
+	type RewardRemainder = ();
+	type Event = Event;
+	type Slash = ();
+	type Reward = ();
+	type SessionsPerEra = SessionsPerEra;
+	type BondingDuration = BondingDuration;
+	type SlashDeferDuration = SlashDeferDuration;
+	type SlashCancelOrigin = system::EnsureRoot<AccountId>;
+	type SessionInterface = Self;
+	type RewardCurve = RewardCurve;
+}
+
+impl authority_discovery::Trait for Runtime {}
+
+parameter_types! {
+	pub const WindowSize: BlockNumber = 101;
+	pub const ReportLatency: BlockNumber = 1000;
+}
+
+impl finality_tracker::Trait for Runtime {
+	type OnFinalizationStalled = Grandpa;
+	type WindowSize = WindowSize;
+	type ReportLatency = ReportLatency;
+}
+
+parameter_types! {
+	pub const UncleGenerations: BlockNumber = 5;
+}
+
+impl authorship::Trait for Runtime {
+	type FindAuthor = session::FindAccountFromAuthorIndex<Self, Babe>;
+	type UncleGenerations = UncleGenerations;
+	type FilterUncle = ();
+	type EventHandler = (Staking, ImOnline);
+}
+
+impl offences::Trait for Runtime {
+	type Event = Event;
+	type IdentificationTuple = session::historical::IdentificationTuple<Self>;
+	type OnOffenceHandler = Staking;
+}
+
+parameter_types! {
+	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(17);
+}
+
+impl session::Trait for Runtime {
+	type Event = Event;
+	type ValidatorId = <Self as system::Trait>::AccountId;
+	type ValidatorIdOf = staking::StashOf<Self>;
+	type ShouldEndSession = Babe;
+	type OnSessionEnding = Staking;
+	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+	type Keys = SessionKeys;
+	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
+	type SelectInitialValidators = Staking;
+}
+
+impl session::historical::Trait for Runtime {
+	type FullIdentification = staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = staking::ExposureOf<Runtime>;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -275,18 +397,25 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: system::{Module, Call, Storage, Config, Event},
+		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
-		Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
-		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
 		Indices: indices,
 		Balances: balances::{default, Error},
 		TransactionPayment: transaction_payment::{Module, Storage},
-		Sudo: sudo,
-		// Used for the module template in `./template.rs`
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
 		EVM: evm::{Module, Call, Storage, Config, Event},
+		Sudo: sudo,
 
+		// Consensus
+		Session: session::{Module, Call, Storage, Event, Config<T>},
+		Babe: babe::{Module, Call, Storage, Config, Inherent(Timestamp)},
+		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
+		ImOnline: im_online::{Module, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
+		AuthorityDiscovery: authority_discovery::{Module, Call, Config},
+		FinalityTracker: finality_tracker::{Module, Call, Inherent},
+		Authorship: authorship::{Module, Call, Storage, Inherent},
+		Staking: staking::{default, OfflineWorker},
+		Offences: offences::{Module, Call, Storage, Event},
 	}
 );
 
@@ -374,19 +503,27 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
-		fn slot_duration() -> u64 {
-			Aura::slot_duration()
-		}
-
-		fn authorities() -> Vec<AuraId> {
-			Aura::authorities()
+	impl babe_primitives::BabeApi<Block> for Runtime {
+		fn configuration() -> babe_primitives::BabeConfiguration {
+			// The choice of `c` parameter (where `1 - c` represents the
+			// probability of a slot being empty), is done in accordance to the
+			// slot duration and expected target block time, for safely
+			// resisting network delays of maximum two seconds.
+			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
+			babe_primitives::BabeConfiguration {
+				slot_duration: Babe::slot_duration(),
+				epoch_length: EpochDuration::get(),
+				c: PRIMARY_PROBABILITY,
+				genesis_authorities: Babe::authorities(),
+				randomness: Babe::randomness(),
+				secondary_slots: true,
+			}
 		}
 	}
 
 	impl sp_session::SessionKeys<Block> for Runtime {
 		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			opaque::SessionKeys::generate(seed)
+			SessionKeys::generate(seed)
 		}
 	}
 

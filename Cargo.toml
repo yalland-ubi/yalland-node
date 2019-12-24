@@ -8,6 +8,9 @@ parking_lot = '0.9.0'
 tokio = '0.1.22'
 trie-root = '0.15.2'
 
+im-online = { package = "pallet-im-online", git = "https://github.com/paritytech/substrate", rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc' }
+authority-discovery-primitives = { package = "sp-authority-discovery", git = "https://github.com/paritytech/substrate", rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc' }
+
 [dependencies.codec]
 package = 'parity-scale-codec'
 version = '1.0.0'
@@ -23,75 +26,76 @@ version = '0.1.29'
 [dependencies.grandpa]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sc-finality-grandpa'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.grandpa-primitives]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-finality-grandpa'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.yalland-node-runtime]
 path = 'runtime'
 
 [dependencies.sc-basic-authority]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-cli]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-client]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
-[dependencies.sc-consensus-aura]
+[dependencies.babe]
+package = 'sc-consensus-babe'
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-executor]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-network]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-service]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sc-transaction-pool]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-consensus]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
-[dependencies.sp-consensus-aura]
+[dependencies.sp-consensus-babe]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-core]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-inherents]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-io]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-runtime]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [dependencies.sp-transaction-pool]
 git = 'https://github.com/paritytech/substrate.git'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
 
 [package]
 authors = ['Yalland']
@@ -112,4 +116,4 @@ vergen = '3.0.4'
 [build-dependencies.build-script-utils]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'substrate-build-script-utils'
-rev = '40a16efefc070faf5a25442bc3ae1d0ea2478eee'
+rev = '73ae66aeb11f96303283a7ebde58b4849ee1fadc'
