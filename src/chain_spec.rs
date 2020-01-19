@@ -5,7 +5,7 @@ use yalland_node_runtime::{
 	AccountId, BabeConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
 	SudoConfig, IndicesConfig, SystemConfig, WASM_BINARY, Signature,
 	EVMConfig, ImOnlineConfig, AuthorityDiscoveryConfig, SessionConfig,
-	SessionKeys, StakingConfig, StakerStatus
+	SessionKeys, StakingConfig, StakerStatus, ContractsConfig
 };
 use yalland_node_runtime::constants::currency::*;
 use sc_consensus_babe::{AuthorityId as BabeId};
@@ -213,7 +213,7 @@ fn testnet_genesis(
 	initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, AuthorityDiscoveryId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
-	_enable_println: bool) -> GenesisConfig {
+	enable_println: bool) -> GenesisConfig {
 
 	const ENDOWMENT: u128 = 1_000_000 * YNT;
 	const STASH: u128 = 100 * YNT;
@@ -263,5 +263,12 @@ fn testnet_genesis(
 			keys: vec![],
 		}),
 		evm: Some(EVMConfig::default()),
+		pallet_contracts: Some(ContractsConfig {
+			current_schedule: pallet_contracts::Schedule {
+				enable_println, // this should only be enabled on development chains
+				..Default::default()
+			},
+			gas_price: 1 * MILLICENTS,
+		}),
 	}
 }

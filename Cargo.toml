@@ -18,6 +18,7 @@ sc-client-api = { git = "https://github.com/paritytech/substrate.git", rev = "37
 sc-client-db = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
 sc-offchain = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
 sc-authority-discovery = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
+pallet-contracts = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
 node-primitives = { git = "https://github.com/paritytech/substrate.git", rev = "37be26343ac2f8ac2b692346246b8c7954d79199" }
 

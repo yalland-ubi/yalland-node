@@ -12,3 +12,6 @@ validator-1:
 
 validator-2:
 	cd scripts && ./run2.sh
+
+validator-3:
+	cd scripts && ./run3.sh

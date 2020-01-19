@@ -15,12 +15,15 @@ use sp_runtime::{
 	impl_opaque_keys, MultiSignature, curve::PiecewiseLinear,
 };
 use sp_runtime::traits::{
-	NumberFor, BlakeTwo256, Block as BlockT, StaticLookup, Verify, ConvertInto, IdentifyAccount, OpaqueKeys
+	BlakeTwo256, Block as BlockT, StaticLookup, Verify, ConvertInto, IdentifyAccount, OpaqueKeys,
+	Extrinsic, SaturatedConversion
 };
 use im_online::sr25519::{AuthorityId as ImOnlineId};
 use impls::{CurrencyToVoteHandler};
 use grandpa::AuthorityList as GrandpaAuthorityList;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+use pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo;
+use pallet_contracts_rpc_runtime_api::ContractExecResult;
 use sp_api::impl_runtime_apis;
 use system::offchain::TransactionSubmitter;
 use grandpa::fg_primitives;
@@ -37,7 +40,7 @@ pub use balances::Call as BalancesCall;
 pub use sp_runtime::{Permill, Perbill};
 pub use evm::{ConvertAccountId, FeeCalculator};
 pub use frame_support::{
-	StorageValue, construct_runtime, parameter_types,
+	StorageValue, construct_runtime, parameter_types, debug,
 	traits::Randomness,
 	weights::Weight,
 };
@@ -76,7 +79,7 @@ mod template;
 pub mod constants;
 pub mod impls;
 
-use constants::{time::*};
+use constants::{time::*, currency::*};
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -154,7 +157,7 @@ impl system::Trait for Runtime {
 	type AvailableBlockRatio = AvailableBlockRatio;
 	/// Version of the runtime.
 	type Version = Version;
-	type ModuleToIndex = ();
+	type ModuleToIndex = ModuleToIndex;
 }
 
 parameter_types! {
@@ -274,16 +277,99 @@ impl evm::Trait for Runtime {
 }
 
 parameter_types! {
+	pub const ContractTransferFee: Balance = 1 * CENTS;
+	pub const ContractCreationFee: Balance = 1 * CENTS;
+	pub const ContractTransactionBaseFee: Balance = 1 * CENTS;
+	pub const ContractTransactionByteFee: Balance = 10 * MILLICENTS;
+	pub const ContractFee: Balance = 1 * CENTS;
+	pub const TombstoneDeposit: Balance = 1 * DOLLARS;
+	pub const RentByteFee: Balance = 1 * DOLLARS;
+	pub const RentDepositOffset: Balance = 1000 * DOLLARS;
+	pub const SurchargeReward: Balance = 150 * DOLLARS;
+}
+
+impl pallet_contracts::Trait for Runtime {
+	type Currency = Balances;
+	type Time = Timestamp;
+	type Randomness = RandomnessCollectiveFlip;
+	type Call = Call;
+	type Event = Event;
+	type DetermineContractAddress = pallet_contracts::SimpleAddressDeterminator<Runtime>;
+	type ComputeDispatchFee = pallet_contracts::DefaultDispatchFeeComputor<Runtime>;
+	type TrieIdGenerator = pallet_contracts::TrieIdFromParentCounter<Runtime>;
+	type GasPayment = ();
+	type RentPayment = ();
+	type SignedClaimHandicap = pallet_contracts::DefaultSignedClaimHandicap;
+	type TombstoneDeposit = TombstoneDeposit;
+	type StorageSizeOffset = pallet_contracts::DefaultStorageSizeOffset;
+	type RentByteFee = RentByteFee;
+	type RentDepositOffset = RentDepositOffset;
+	type SurchargeReward = SurchargeReward;
+	type TransferFee = ContractTransferFee;
+	type CreationFee = ContractCreationFee;
+	type TransactionBaseFee = ContractTransactionBaseFee;
+	type TransactionByteFee = ContractTransactionByteFee;
+	type ContractFee = ContractFee;
+	type CallBaseFee = pallet_contracts::DefaultCallBaseFee;
+	type InstantiateBaseFee = pallet_contracts::DefaultInstantiateBaseFee;
+	type MaxDepth = pallet_contracts::DefaultMaxDepth;
+	type MaxValueSize = pallet_contracts::DefaultMaxValueSize;
+	type BlockGasLimit = pallet_contracts::DefaultBlockGasLimit;
+}
+
+parameter_types! {
 	pub const SessionDuration: BlockNumber = EPOCH_DURATION_IN_SLOTS as _;
 }
+
+pub type SubmitTransaction = TransactionSubmitter<ImOnlineId, Runtime, UncheckedExtrinsic>;
 
 impl im_online::Trait for Runtime {
 	type AuthorityId = ImOnlineId;
 	type Event = Event;
 	type Call = Call;
-	type SubmitTransaction = TransactionSubmitter<ImOnlineId, Runtime, UncheckedExtrinsic>;
+	type SubmitTransaction = SubmitTransaction;
 	type SessionDuration = SessionDuration;
 	type ReportUnresponsiveness = Offences;
+}
+
+impl system::offchain::CreateTransaction<Runtime, UncheckedExtrinsic> for Runtime {
+	type Public = <Signature as Verify>::Signer;
+	type Signature = Signature;
+
+	fn create_transaction<TSigner: system::offchain::Signer<Self::Public, Self::Signature>>(
+		call: Call,
+		public: Self::Public,
+		account: AccountId,
+		index: Index,
+	) -> Option<(Call, <UncheckedExtrinsic as Extrinsic>::SignaturePayload)> {
+		// take the biggest period possible.
+		let period = BlockHashCount::get()
+			.checked_next_power_of_two()
+			.map(|c| c / 2)
+			.unwrap_or(2) as u64;
+		let current_block = System::block_number()
+			.saturated_into::<u64>()
+			// The `System::block_number` is initialized with `n+1`,
+			// so the actual block number is `n`.
+			.saturating_sub(1);
+		let tip = 0;
+		let extra: SignedExtra = (
+			system::CheckVersion::<Runtime>::new(),
+			system::CheckGenesis::<Runtime>::new(),
+			system::CheckEra::<Runtime>::from(generic::Era::mortal(period, current_block)),
+			system::CheckNonce::<Runtime>::from(index),
+			system::CheckWeight::<Runtime>::new(),
+			transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+			Default::default(),
+		);
+		let raw_payload = SignedPayload::new(call, extra).map_err(|e| {
+			debug::warn!("Unable to create signed payload: {:?}", e);
+		}).ok()?;
+		let signature = TSigner::sign(public, &raw_payload)?;
+		let address = Indices::unlookup(account);
+		let (call, extra, _) = raw_payload.deconstruct();
+		Some((call, (address, signature, extra)))
+	}
 }
 
 pallet_staking_reward_curve::build! {
@@ -394,6 +480,7 @@ construct_runtime!(
 		Balances: balances,
 		TransactionPayment: transaction_payment::{Module, Storage},
 		EVM: evm::{Module, Call, Storage, Config, Event},
+		Contracts: pallet_contracts,
 		Sudo: sudo,
 
 		// Consensus
@@ -425,10 +512,13 @@ pub type SignedExtra = (
 	system::CheckEra<Runtime>,
 	system::CheckNonce<Runtime>,
 	system::CheckWeight<Runtime>,
-	transaction_payment::ChargeTransactionPayment<Runtime>
+	transaction_payment::ChargeTransactionPayment<Runtime>,
+	pallet_contracts::CheckBlockGasLimit<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
+/// The payload being signed in transactions.
+pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
@@ -519,6 +609,62 @@ impl_runtime_apis! {
 	impl sp_authority_discovery::AuthorityDiscoveryApi<Block> for Runtime {
 		fn authorities() -> Vec<AuthorityDiscoveryId> {
 			AuthorityDiscovery::authorities()
+		}
+	}
+
+	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
+		fn account_nonce(account: AccountId) -> Index {
+			System::account_nonce(account)
+		}
+	}
+
+	impl pallet_contracts_rpc_runtime_api::ContractsApi<Block, AccountId, Balance> for Runtime {
+		fn call(
+			origin: AccountId,
+			dest: AccountId,
+			value: Balance,
+			gas_limit: u64,
+			input_data: Vec<u8>,
+		) -> ContractExecResult {
+			let exec_result = Contracts::bare_call(
+				origin,
+				dest.into(),
+				value,
+				gas_limit,
+				input_data,
+			);
+			match exec_result {
+				Ok(v) => ContractExecResult::Success {
+					status: v.status,
+					data: v.data,
+				},
+				Err(_) => ContractExecResult::Error,
+			}
+		}
+
+		fn get_storage(
+			address: AccountId,
+			key: [u8; 32],
+		) -> pallet_contracts_rpc_runtime_api::GetStorageResult {
+			Contracts::get_storage(address, key).map_err(|rpc_err| {
+				use pallet_contracts::GetStorageError;
+				use pallet_contracts_rpc_runtime_api::{GetStorageError as RpcGetStorageError};
+				/// Map the contract error into the RPC layer error.
+				match rpc_err {
+					GetStorageError::ContractDoesntExist => RpcGetStorageError::ContractDoesntExist,
+					GetStorageError::IsTombstone => RpcGetStorageError::IsTombstone,
+				}
+			})
+		}
+	}
+
+	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<
+		Block,
+		Balance,
+		UncheckedExtrinsic,
+	> for Runtime {
+		fn query_info(uxt: UncheckedExtrinsic, len: u32) -> RuntimeDispatchInfo<Balance> {
+			TransactionPayment::query_info(uxt, len)
 		}
 	}
 

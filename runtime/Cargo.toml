@@ -37,8 +37,11 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'pallet-contracts/std',
+    'pallet-contracts-rpc-runtime-api/std',
     'sudo/std',
     'system/std',
+    'frame-system-rpc-runtime-api/std',
     'timestamp/std',
     'transaction-payment/std',
 ]
@@ -77,6 +80,10 @@ authorship = { package = "pallet-authorship", git = "https://github.com/parityte
 offences = { package = "pallet-offences", git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
 authority-discovery = { package = "pallet-authority-discovery", git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
 finality-tracker = { package = "pallet-finality-tracker", git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
+pallet-contracts = { git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
+pallet-contracts-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
 pallet-staking-reward-curve = { git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199"}
 
 frame-executive = { package = "frame-executive", git = "https://github.com/paritytech/substrate", rev = "37be26343ac2f8ac2b692346246b8c7954d79199", default-features = false }
