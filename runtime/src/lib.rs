@@ -215,6 +215,7 @@ impl balances::Trait for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type TransferFee = TransferFee;
 	type CreationFee = CreationFee;
+	type OnReapAccount = ();
 }
 
 parameter_types! {
@@ -390,7 +391,7 @@ construct_runtime!(
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
 		Indices: indices,
-		Balances: balances::{default, Error},
+		Balances: balances,
 		TransactionPayment: transaction_payment::{Module, Storage},
 		EVM: evm::{Module, Call, Storage, Config, Event},
 		Sudo: sudo,
@@ -402,7 +403,7 @@ construct_runtime!(
 		AuthorityDiscovery: authority_discovery::{Module, Call, Config},
 		FinalityTracker: finality_tracker::{Module, Call, Inherent},
 		Authorship: authorship::{Module, Call, Storage, Inherent},
-		Staking: staking::{default, OfflineWorker},
+		Staking: staking,
 		Offences: offences::{Module, Call, Storage, Event},
 	}
 );
@@ -486,8 +487,8 @@ impl_runtime_apis! {
 	}
 
 	impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
-		fn offchain_worker(number: NumberFor<Block>) {
-			Executive::offchain_worker(number)
+		fn offchain_worker(header: &<Block as BlockT>::Header) {
+			Executive::offchain_worker(header)
 		}
 	}
 

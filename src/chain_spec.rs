@@ -137,25 +137,26 @@ impl Alternative {
 				ChainSpec::from_genesis(
 					"Palmnicken Testnet",
 					"palmnicken_testnet",
+					// WARNING: SS58 public addresses are not in sync with public addresses
 					|| testnet_genesis(
 						vec![(
-							// 5DD7Q4VEfPTLEdn11CnThoHT5f9xKCrnofWJL5SsvpTghaAT
+							// Stash - 5DD7Q4VEfPTLEdn11CnThoHT5f9xKCrnofWJL5SsvpTghaAT
 							hex!["62692ff7965729b21a10862da513beb42b7da54f321e35e2147983e1e53dc935"].into(),
-							// 5GNzaEqhrZAtUQhbMe2gn9jBuNWfamWFZHULryFwBUXyd1cG
+							// Controller - 5GNzaEqhrZAtUQhbMe2gn9jBuNWfamWFZHULryFwBUXyd1cG
 							hex!["3cd09eecf6faa579ff49a5bb8175c02244da1151cfa75b8b3fc9dcb15b4b281d"].into(),
-							// 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
+							// Babe - 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
 							hex!["5cd39f695f92f114d33f731283968eb5627d82b20cf9b2357798dbdb271bd01a"].unchecked_into(),
-							// 5EjvdwATjyFFikdZibVvx1q5uBHhphS2Mnsq5c7yfaYK25vm
+							// Grandpa - 5EjvdwATjyFFikdZibVvx1q5uBHhphS2Mnsq5c7yfaYK25vm
 							hex!["f3e9d049bf974441e6603e28d216b6f7b01addc12a987224f09f62ccd2df4c9f"].unchecked_into(),
-							// 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
+							// ImOnline - 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
 							hex!["5cd39f695f92f114d33f731283968eb5627d82b20cf9b2357798dbdb271bd01a"].unchecked_into(),
-							// 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
+							// AuthorityDiscovery - 5FpewyS2VY8Cj3tKgSckq8ECkjd1HKHvBRnWhiHqRQsWfFC1
 							hex!["5cd39f695f92f114d33f731283968eb5627d82b20cf9b2357798dbdb271bd01a"].unchecked_into(),
 						),(
 							// 5G9VGb8ESBeS8Ca4or43RfhShzk9y7T5iTmxHk5RJsjZwsRx
 							hex!["a83f9b156daa23ac07dd3361514d1b9f1674904d35ce8ab422bc8e1e12dac70b"].into(),
 							// 5F7V9Y5FcxKXe1aroqvPeRiUmmeQwTFcL3u9rrPXcMuMiCNx
-							hex!["a224f6e5a1d971019c3d3d012a6980ff6cd20686a345d121a2373029ef014898"].into(),
+							hex!["b819d8c01cbc46e23d9b79f7654f704a828fa1946bc8a97f56889daade1ced4e"].into(),
 							// 5GvuM53k1Z4nAB5zXJFgkRSHv4Bqo4BsvgbQWNWkiWZTMwWY
 							hex!["206ff0c892b4b1faa0e4051476a997e9b31a28957aff53281a52f43967cf200f"].unchecked_into(),
 							// 5HBDAaybNqjmY7ww8ZcZZY1L5LHxvpnyfqJwoB7HhR6raTmG
@@ -182,6 +183,9 @@ impl Alternative {
 						vec![
 							// 5CVFESwfkk7NmhQ6FwHCM9roBvr9BGa4vJHFYU8DnGQxrXvz
 							hex!["fe67fbbb51d35b1528f30a74ffd735bdf6caa63b45fb65ebeaa87217418ed154"].into(),
+							hex!["3cd09eecf6faa579ff49a5bb8175c02244da1151cfa75b8b3fc9dcb15b4b281d"].into(),
+							hex!["b819d8c01cbc46e23d9b79f7654f704a828fa1946bc8a97f56889daade1ced4e"].into(),
+							hex!["1897739a555a3ffc548045b2d3580510e9d30e4529d7b92bc35da4421200d160"].into(),
 						],
 						true
 					),
