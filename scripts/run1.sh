@@ -1,6 +1,6 @@
 ../target/release/yalland-node \
   --base-path ../tmp/node-a \
-  --chain ../palmnickenSpec.json \
+  --chain ../customSpec.json \
   --port 30333 \
   --ws-port 9944 \
   --rpc-port 9933 \
