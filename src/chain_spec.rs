@@ -165,19 +165,6 @@ impl Alternative {
 							hex!["206ff0c892b4b1faa0e4051476a997e9b31a28957aff53281a52f43967cf200f"].unchecked_into(),
 							// 5GvuM53k1Z4nAB5zXJFgkRSHv4Bqo4BsvgbQWNWkiWZTMwWY
 							hex!["206ff0c892b4b1faa0e4051476a997e9b31a28957aff53281a52f43967cf200f"].unchecked_into(),
-						),(
-							// 5FzwpgGvk2kk9agow6KsywLYcPzjYc8suKej2bne5G5b9YU3
-							hex!["5e25b78d7ef73fb03c48b5550c7762f2fffaff54ef6cac0d670157cf2ba18563"].into(),
-							// 5EqoZhVC2BcsM4WjvZNidu2muKAbu5THQTBKe3EjvxXkdP7A
-							hex!["1897739a555a3ffc548045b2d3580510e9d30e4529d7b92bc35da4421200d160"].into(),
-							// 5CXNq1mSKJT4Sc2CbyBBdANeSkbUvdWvE4czJjKXfBHi9sX5
-							hex!["5ac8b49bc092ecf7fe6d5ba8d44af9bfd15d93c2c99cbba5a98caad2f661642e"].unchecked_into(),
-							// 5E8ULLQrDAtWhfnVfZmX41Yux86zNAwVJYguWJZVWrJvdhBe
-							hex!["91795288ab550bbb972627fff63567fc1d1d6f1ecfbcec33afe64560186418c4"].unchecked_into(),
-							// 5CXNq1mSKJT4Sc2CbyBBdANeSkbUvdWvE4czJjKXfBHi9sX5
-							hex!["5ac8b49bc092ecf7fe6d5ba8d44af9bfd15d93c2c99cbba5a98caad2f661642e"].unchecked_into(),
-							// 5CXNq1mSKJT4Sc2CbyBBdANeSkbUvdWvE4czJjKXfBHi9sX5
-							hex!["5ac8b49bc092ecf7fe6d5ba8d44af9bfd15d93c2c99cbba5a98caad2f661642e"].unchecked_into(),
 						)],
 						hex!["fe67fbbb51d35b1528f30a74ffd735bdf6caa63b45fb65ebeaa87217418ed154"].into(),
 						vec![
@@ -185,7 +172,7 @@ impl Alternative {
 							hex!["fe67fbbb51d35b1528f30a74ffd735bdf6caa63b45fb65ebeaa87217418ed154"].into(),
 							hex!["3cd09eecf6faa579ff49a5bb8175c02244da1151cfa75b8b3fc9dcb15b4b281d"].into(),
 							hex!["b819d8c01cbc46e23d9b79f7654f704a828fa1946bc8a97f56889daade1ced4e"].into(),
-							hex!["1897739a555a3ffc548045b2d3580510e9d30e4529d7b92bc35da4421200d160"].into(),
+							hex!["4a2b78c240c1cd0818ac6f8e5c7cf5d1856120b5a1f3c0e410952cd88671da4e"].into(),
 						],
 						true
 					),
@@ -215,7 +202,7 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	enable_println: bool) -> GenesisConfig {
 
-	const ENDOWMENT: u128 = 1_000_000 * YNT;
+	const ENDOWMENT: u128 = 1_000_000_000 * YNT;
 	const STASH: u128 = 100 * YNT;
 
 	GenesisConfig {

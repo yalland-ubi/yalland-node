@@ -168,7 +168,7 @@ parameter_types! {
 impl babe::Trait for Runtime {
 	type EpochDuration = EpochDuration;
 	type ExpectedBlockTime = ExpectedBlockTime;
-	type EpochChangeTrigger = babe::SameAuthoritiesForever;
+	type EpochChangeTrigger = babe::ExternalTrigger;
 }
 
 impl grandpa::Trait for Runtime {
@@ -385,7 +385,7 @@ pallet_staking_reward_curve::build! {
 
 parameter_types! {
 	// Six sessions in an era (24 hours).
-	pub const SessionsPerEra: SessionIndex = 6;
+	pub const SessionsPerEra: SessionIndex = 3;
 	// 28 eras for unbonding (28 days).
 	// KUSAMA: This value is 1/4 of what we expect for the mainnet, however session length is also
 	// a quarter, so the figure remains the same.
