@@ -166,13 +166,10 @@ impl Alternative {
 							// 5GvuM53k1Z4nAB5zXJFgkRSHv4Bqo4BsvgbQWNWkiWZTMwWY
 							hex!["206ff0c892b4b1faa0e4051476a997e9b31a28957aff53281a52f43967cf200f"].unchecked_into(),
 						)],
-						hex!["fe67fbbb51d35b1528f30a74ffd735bdf6caa63b45fb65ebeaa87217418ed154"].into(),
+						hex!["2ae01eb7c88dfb7d0b1654eada34b948838d8123e067bbf43ae6615f2f2e2119"].into(),
 						vec![
-							// 5CVFESwfkk7NmhQ6FwHCM9roBvr9BGa4vJHFYU8DnGQxrXvz
-							hex!["fe67fbbb51d35b1528f30a74ffd735bdf6caa63b45fb65ebeaa87217418ed154"].into(),
-							hex!["3cd09eecf6faa579ff49a5bb8175c02244da1151cfa75b8b3fc9dcb15b4b281d"].into(),
-							hex!["b819d8c01cbc46e23d9b79f7654f704a828fa1946bc8a97f56889daade1ced4e"].into(),
-							hex!["4a2b78c240c1cd0818ac6f8e5c7cf5d1856120b5a1f3c0e410952cd88671da4e"].into(),
+							// 5D2vSp8hqLtPfB5DRwP1BasLT5j186XPm6GzHoR4V1PqU7tt
+							hex!["2ae01eb7c88dfb7d0b1654eada34b948838d8123e067bbf43ae6615f2f2e2119"].into()
 						],
 						true
 					),
@@ -189,8 +186,8 @@ impl Alternative {
 	pub(crate) fn from(s: &str) -> Option<Self> {
 		match s {
 			"dev" => Some(Alternative::Development),
-			"palm" => Some(Alternative::PalmnickenTestnet),
-			"" | "local" => Some(Alternative::LocalTestnet),
+			"local" => Some(Alternative::LocalTestnet),
+			"" | "palm" => Some(Alternative::PalmnickenTestnet),
 			_ => None,
 		}
 	}
@@ -202,7 +199,7 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	enable_println: bool) -> GenesisConfig {
 
-	const ENDOWMENT: u128 = 1_000_000_000 * YNT;
+	const ENDOWMENT: u128 = 1_000_000_000_000 * YNT;
 	const STASH: u128 = 100 * YNT;
 
 	GenesisConfig {
@@ -230,7 +227,7 @@ fn testnet_genesis(
 		}),
 		staking: Some(StakingConfig {
 			current_era: 0,
-			validator_count: 50,
+			validator_count: 20,
 			minimum_validator_count: 2,
 			stakers: initial_authorities.iter().map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator)).collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
