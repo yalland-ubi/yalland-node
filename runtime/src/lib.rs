@@ -73,9 +73,6 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
 
-/// Used for the module template in `./template.rs`
-mod template;
-
 pub mod constants;
 pub mod impls;
 
@@ -238,11 +235,6 @@ impl transaction_payment::Trait for Runtime {
 impl sudo::Trait for Runtime {
 	type Event = Event;
 	type Proposal = Call;
-}
-
-/// Used for the module template in `./template.rs`
-impl template::Trait for Runtime {
-	type Event = Event;
 }
 
 pub struct FixedGasPrice;
@@ -474,7 +466,6 @@ construct_runtime!(
 		// Must be before session.
 		Babe: babe::{Module, Call, Storage, Config, Inherent(Timestamp)},
 
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 		Timestamp: timestamp::{Module, Call, Storage, Inherent},
 		Indices: indices,
 		Balances: balances,
