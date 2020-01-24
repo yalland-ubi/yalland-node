@@ -30,7 +30,7 @@ pub enum Alternative {
 	Development,
 	/// Whatever the current runtime is, with simple Alice/Bob auths.
 	LocalTestnet,
-	PalmnickenTestnet
+	YallandCom
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -133,10 +133,10 @@ impl Alternative {
 				None,
 				None
 			),
-			Alternative::PalmnickenTestnet => {
+			Alternative::YallandCom => {
 				ChainSpec::from_genesis(
-					"Palmnicken Testnet",
-					"palmnicken_testnet",
+					"yalland.com",
+					"yalland",
 					// WARNING: SS58 public addresses are not in sync with public addresses
 					|| testnet_genesis(
 						vec![(
@@ -187,7 +187,7 @@ impl Alternative {
 		match s {
 			"dev" => Some(Alternative::Development),
 			"local" => Some(Alternative::LocalTestnet),
-			"" | "palm" => Some(Alternative::PalmnickenTestnet),
+			"" | "yalland" => Some(Alternative::YallandCom),
 			_ => None,
 		}
 	}
@@ -199,7 +199,7 @@ fn testnet_genesis(
 	endowed_accounts: Vec<AccountId>,
 	enable_println: bool) -> GenesisConfig {
 
-	const ENDOWMENT: u128 = 1_000_000_000_000 * YNT;
+	const ENDOWMENT: u128 = 21_000_000 * YNT;
 	const STASH: u128 = 100 * YNT;
 
 	GenesisConfig {
